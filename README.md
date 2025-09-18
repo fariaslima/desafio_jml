@@ -1,61 +1,168 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
 
-## About Laravel
+# Desafio Técnico – Migração PHP Nativo para Laravel 12
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Este projeto é parte de um teste técnico com foco em **migração de código legado em PHP procedural (7.4)** para **Laravel 12 moderno**, aplicando boas práticas, validações, arquitetura limpa e testes automatizados.
+## 📦 Requisitos
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Docker + Docker Compose
+- PHP e Composer (apenas se quiser rodar fora do Docker)
+## ▶️ Como rodar o projeto
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+#### Subir containers
+```bash
+docker-compose up -d --build
+````
 
-## Learning Laravel
+#### Instalar dependências
+```
+composer install
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+#### Gerar chave da aplicação
+```
+php artisan key:generate
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+#### Rodar migrations + seeders
+```
+php artisan migrate --seed
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Após isso, o banco estará populado com 8 fornecedores fake via FornecedorSeeder.
+## 🌐 Documentação da API
 
-## Laravel Sponsors
+#### Retorna todos os fornecedores
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```http
+  GET /api/fornecedores
+```
 
-### Premium Partners
+#### Suporta busca por nome
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```http
+  GET /api/fornecedores?q=joão
+```
 
-## Contributing
+#### Cria fornecedor
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```http
+    POST /api/fornecedores
+    Content-Type: application/json
 
-## Code of Conduct
+    {
+        "nome": "Fornecedor Exemplo",
+        "cnpj": "12345678000199",
+        "email": "contato@fornecedor.com"
+    }
+```
+#### Deleta um fornecedor
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```http
+  GET /api/forncedores/${id}
+```
 
-## Security Vulnerabilities
+| Parâmetro   | Tipo       | Descrição                                   |
+| :---------- | :--------- | :------------------------------------------ |
+| `id`      | `string` | **Obrigatório**. O ID do forncedor que você quer deletar |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 🧪 Rodar Testes
+
+```
+php artisan test
+```
+
+#### Os testes cobrem:
+- Criação com sucesso
+- Validações (falha de CNPJ/email inválido)
+- Busca filtrada por nome
+- Exclusão via API
+- Verificação de soft delete no banco
+- Invisibilidade normal
+    - Verifica que o registro não é mais encontrado, simulando que foi "removido" para consultas normais.
+- Visibilidade com trashed
+    - Confirma que o registro ainda existe e pode ser recuperado, permitindo restauração ou consultas especiais.
+
+
+## 📂 Estrutura relevante
+
+```
+/app
+    /Http
+        /Controllers/Api/FornecedorController.php
+        /Requests/StoreFornecedorRequest.php
+        /Resources/FornecedorResource.php
+        /Resources/FornecedorCollection.php
+    /Models/Fornecedor.php
+    /Services/FornecedorService.php
+    /Services/FornecedorDataPreparer.php
+    /Services/ValidationService.php
+
+/database
+    /factories/FornecedorFactory.php
+    /seeders/FornecedorSeeder.php
+    /seeders/DatabaseSeeder.php
+
+/legacy
+    fornecedor_legacy.php   <-- código legado incluído
+
+/tests
+    Feature/FornecedorTest.php
+    Feature/FornecedorSoftDeleteTest.php
+```
+## 🖍 Roadmap
+
+Este roadmap sugere futuras melhorias e funcionalidades planejadas para o sistema de fornecedores. As tarefas estão organizadas por prioridade e fase de desenvolvimento.
+
+### Fase 1: Melhorias no Backend (Próximas 1-2 semanas)
+- [ ] **Autenticação e Autorização**: Implementar JWT ou Sanctum para proteger endpoints da API.
+- [ ] **Paginação Avançada**: Melhorar paginação com meta-dados (total, páginas, links).
+- [ ] **Validações Adicionais**: Adicionar validação de CPF, telefone e endereço.
+- [ ] **Logs e Auditoria**: Implementar logging de ações (criação, edição, exclusão) para compliance.
+- [ ] **Rate Limiting**: Adicionar limite de requisições por IP/usuário para prevenir abuso.
+
+### Fase 2: Expansão da API (Próximas 2-4 semanas)
+- [ ] **Endpoints para Usuários**: CRUD completo para usuários (admin, cliente).
+- [ ] **Relacionamentos**: Adicionar categorias ou tipos de fornecedores.
+- [ ] **Busca Avançada**: Filtros por data, status, e busca full-text.
+- [ ] **Export/Import**: Suporte a CSV/Excel para importação/exportação de fornecedores.
+- [ ] **Notificações**: Envio de emails/SMS para eventos (ex.: fornecedor criado).
+
+### Fase 3: Frontend e UX (Próximas 4-6 semanas)
+- [ ] **Interface Web**: Desenvolver dashboard com Vue.js/React para gerenciar fornecedores.
+- [ ] **Formulários Dinâmicos**: Validação em tempo real no frontend.
+- [ ] **Dashboard com Gráficos**: Estatísticas de fornecedores (ativos, inativos, por região).
+- [ ] **Responsividade**: Otimizar para mobile e tablets.
+- [ ] **Internacionalização (i18n)**: Suporte a múltiplos idiomas (PT/EN).
+
+### Fase 4: Otimização e Escalabilidade (Próximas 6-8 semanas)
+- [ ] **Cache**: Implementar Redis para cache de queries frequentes.
+- [ ] **Testes Unitários/Feature**: Aumentar cobertura para 80%+.
+- [ ] **API Versioning**: Suporte a v1, v2 da API para backward compatibility.
+- [ ] **Monitoramento**: Integração com Sentry/New Relic para logs de erro.
+- [ ] **Performance**: Otimizar queries N+1, usar eager loading.
+
+### Fase 5: Produção e Manutenção (Próximas 8-12 semanas)
+- [ ] **Deploy Automatizado**: Configurar CI/CD com GitHub Actions/Docker.
+- [ ] **Documentação da API**: Usar Swagger/OpenAPI para docs interativas.
+- [ ] **Segurança**: Auditoria de segurança, HTTPS obrigatório, sanitização de inputs.
+- [ ] **Backup e Recuperação**: Estratégia de backup de banco e recuperação de dados.
+- [ ] **Suporte a Microserviços**: Preparar para dividir em serviços menores se necessário.
+
+### Contribuições
+Sinta-se à vontade para sugerir novas ideias ou contribuir com qualquer item do roadmap. Abra uma issue ou PR no repositório!
+
+### Prioridades
+- **Alta**: Autenticação, paginação, validações.
+- **Média**: Frontend, notificações, cache.
+- **Baixa**: Microserviços, i18n avançada.
+
+
+
+## Autores
+
+- Paulo Lima (fariaslima@gmail.com)
+- [@fariaslima](https://www.github.com/fariaslima)
+
