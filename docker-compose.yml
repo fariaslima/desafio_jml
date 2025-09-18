@@ -1,0 +1,43 @@
+services:
+  # Serviço para o PHP/FPM
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: php:8.2-fpm
+    container_name: jml_app
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+    networks:
+      - jml_net
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql
+
+  # Serviço para o MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: jml_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: jml_db
+      MYSQL_USER: jml_user
+      MYSQL_PASSWORD: jmlUserPassword
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - jml_net
+    ports:
+      - "3306:3306"
+
+# Redes para os containers se comunicarem
+networks:
+  jml_net:
+    driver: bridge
+
+# Volumes para persistência de dados
+volumes:
+  mysql-data:
+    driver: local
