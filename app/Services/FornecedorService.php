@@ -3,11 +3,14 @@
 namespace App\Services;
 
 use App\Models\Fornecedor;
-use App\Utilities\CnpjFormatter;
 use Illuminate\Support\Facades\DB;
 
 class FornecedorService
 {
+    public function __construct(private FornecedorDataPreparer $preparer)
+    {
+    }
+
     /**
      * @param  array<string, mixed>  $filtros
      * @return \Illuminate\Database\Eloquent\Collection
@@ -28,10 +31,10 @@ class FornecedorService
      */
     public function criar(array $dados): Fornecedor
     {
-        $dados['cnpj'] = CnpjFormatter::clean($dados['cnpj']);
+        $dadosPreparados = $this->preparer->prepare($dados);
 
-        return DB::transaction(function () use ($dados) {
-            return Fornecedor::create($dados);
+        return DB::transaction(function () use ($dadosPreparados) {
+            return Fornecedor::create($dadosPreparados);
         });
     }
 
