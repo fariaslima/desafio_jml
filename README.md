@@ -83,9 +83,12 @@ php artisan test
 ```
 
 #### Os testes cobrem:
-- Criação com sucesso
-- Validações (falha de CNPJ/email inválido)
-- Busca filtrada por nome
+- Criação bem-sucedida de fornecedor com dados válidos
+- Validação de dados inválidos (nome muito curto, CNPJ inválido)
+- Filtragem de fornecedores por nome
+- Prevenção de CNPJ duplicado
+- Validações obrigatórias (nome e CNPJ ausentes)
+- Rejeição de CNPJ com todos zeros ou inválido pela regra de validação
 - Exclusão via API
 - Verificação de soft delete no banco
 - Invisibilidade normal
