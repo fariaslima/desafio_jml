@@ -3,6 +3,14 @@
 # Desafio Técnico – Migração PHP Nativo para Laravel 12
 
 Este projeto é parte de um teste técnico com foco em **migração de código legado em PHP procedural (7.4)** para **Laravel 12 moderno**, aplicando boas práticas, validações, arquitetura limpa e testes automatizados.
+
+
+#### Plano de migração
+
+[Acesso o plano de migração](https://github.com/fariaslima/desafio_jml/blob/main/PLANO_MIGRACAO.MD)
+
+
+
 ## 📦 Requisitos
 
 - Docker + Docker Compose
