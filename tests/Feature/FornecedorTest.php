@@ -51,4 +51,68 @@ class FornecedorTest extends TestCase
             ->assertJsonCount(1, 'data')
             ->assertJsonFragment(['nome' => 'Alpha Corp']);
     }
+
+    #[Test]
+    public function nao_pode_criar_fornecedor_com_cnpj_duplicado()
+    {
+        Fornecedor::factory()->create(['cnpj' => '12345678000195']);
+        $payload = [
+            'nome' => 'Fornecedor Y',
+            'cnpj' => '12345678000195',
+            'email' => 'y@y.com',
+        ];
+        $this->postJson('/api/fornecedores', $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['cnpj']);
+    }
+
+    #[Test]
+    public function nao_pode_criar_fornecedor_sem_nome()
+    {
+        $payload = [
+            'cnpj' => '12345678000195',
+            'email' => 'x@y.com',
+        ];
+        $this->postJson('/api/fornecedores', $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['nome']);
+    }
+
+    #[Test]
+    public function nao_pode_criar_fornecedor_sem_cnpj()
+    {
+        $payload = [
+            'nome' => 'Fornecedor Z',
+            'email' => 'z@y.com',
+        ];
+        $this->postJson('/api/fornecedores', $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['cnpj']);
+    }
+
+    #[Test]
+    public function nao_pode_criar_fornecedor_com_cnpj_todos_zeros()
+    {
+        $payload = [
+            'nome' => 'Fornecedor Zero',
+            'cnpj' => '00000000000000',
+            'email' => 'zero@y.com',
+        ];
+        $this->postJson('/api/fornecedores', $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['cnpj']);
+    }
+
+    #[Test]
+    public function nao_pode_criar_fornecedor_com_cnpj_invalido_pela_regra()
+    {
+        $payload = [
+            'nome' => 'Fornecedor Inv',
+            'cnpj' => '11111111111111',
+            'email' => 'inv@y.com',
+        ];
+        $this->postJson('/api/fornecedores', $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['cnpj']);
+    }
 }
